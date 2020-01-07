@@ -1,2 +1,2 @@
 # FruitRobot
-Acool game
+A cool game

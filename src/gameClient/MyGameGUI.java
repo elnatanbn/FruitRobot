@@ -1,124 +1,204 @@
 package gameClient;
 
+
 import Server.Game_Server;
 import Server.game_service;
 import dataStructure.DGraph;
+import dataStructure.Node;
 import dataStructure.edge_data;
 import dataStructure.graph;
 import dataStructure.node_data;
-
+import gui.Graph_GUI;
+import oop_utils.OOP_Point3D;
 import utils.StdDraw;
 
+import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
+import javax.swing.JOptionPane;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.experimental.theories.FromDataPoints;
+
 public class MyGameGUI {
-	public graph g;
-	int i=0;
+	int second = 0;
+
+	public Timer time = new Timer();
+
+	TimerTask task = new TimerTask() {
+
+		@Override
+		public void run() {
+			currentTime++;
+
+		}
+	};
+	public static int currentTime = 0;
+	public static final double eps = 0.00000001;
+	public static final double radius =  0.00010;
+	//	public ArrayList<Fruit> fruitlist = new ArrayList<Fruit>(4);
+	int gamenum;
+	private graph g;
+	private Fruit[] fruits;
+	private Robot[] gamerobot;
+	private robotrun[] run;
+	public static game_service Game;
+	//	private Robot[] robots;
+	//	private edge_data[] edgesfruit;
+
 	public static void main(String[] args) {
-		game_service game = Game_Server.getServer(0); // you have [0,23] games
+		MyGameGUI m = new MyGameGUI();
+
+	}
+
+	public MyGameGUI() {
+		String gamenumber = JOptionPane.showInputDialog("please choose game number - [0,23]");
+		this.gamenum = Integer.parseInt(gamenumber);
+		this.g = setgamegraph(this.gamenum);
+		this.fruits = getfruits();
+		Graph_GUI G = new Graph_GUI(this.g);///////////////print graph
+		drawStartfruits();  /////////////////////////// print fruits
+		this.gamerobot = getrobotsgame();
+
+		run = new robotrun[gamerobot.length];
+		for (int i = 0; i < gamerobot.length; i++) {
+			String f = JOptionPane.showInputDialog("please choose robot("+i+") strat location: [0 - "+this.g.getV().size()+"]");	
+			int robnum = Integer.parseInt(f);
+			node_data nsrc = this.g.getNode(robnum);
+//			f = JOptionPane.showInputDialog("please choose robot("+i+") strat move: [0 - "+this.g.getV().size()+"]");	
+//			robnum = Integer.parseInt(f);
+			OOP_Point3D p = new OOP_Point3D(nsrc.getLocation().toString());
+			gamerobot[i].setLocation(p);
+			node_data ndest = this.g.getNode(robnum);
+			robotrun r0 = new robotrun(gamerobot[i] , nsrc , ndest , this.g);
+			run[i] = r0;
+		}
+
+		this.startclk();
+
+		int temp = 0;
+		while(!StdDraw.isKeyPressed(27)) {
+			if(StdDraw.isMousePressed()){
+				while(StdDraw.isMousePressed());
+				for (int i = 0; i < gamerobot.length; i++) {
+					Robot r = gamerobot[i];
+					double xm = StdDraw.mouseX();
+					double ym = StdDraw.mouseY();
+					double xr = r.getLocation().x();
+					double yr = r.getLocation().y();
+					
+					if((xm >= xr - radius && xm <= xr + radius) && (ym >= yr - radius || ym <= yr + radius) ) {
+						StdDraw.setPenColor(StdDraw.BLUE);
+						StdDraw.filledCircle(r.getLocation().x(), r.getLocation().y(), 0.00015);
+						String fg = JOptionPane.showInputDialog("enter your location");
+						int robnum = Integer.parseInt(fg);
+						node_data n = this.g.getNode(robnum);	
+						r.setID(n.getKey());
+						run[i].setsrc(n.getKey());
+						OOP_Point3D p = new OOP_Point3D(n.getLocation().toString());
+						gamerobot[i].setLocation(p);
+					}	
+				}
+			}
+
+			if(currentTime > temp) {
+				for (int i = 0; i < run.length; i++) {
+					run[i].interrupt();
+				}	
+				temp = currentTime; 
+			}
+		}
+	}
+
+
+	public  static Fruit[] getfruits() {
+		Fruit[] fruits = new Fruit[Game.getFruits().size()];
+
+		int i = 0;
+		for(String f : Game.getFruits()) {
+			Fruit d = new Fruit(f);
+			fruits[i] = d;
+			i++;
+		}
+		i = 0;
+		return fruits;
+	}
+
+	public static graph setgamegraph(int num) {
+		game_service game = Game_Server.getServer(num); // you have [0,23] games
+		Game = game;
 		String g = game.getGraph();
 		DGraph gg = new DGraph();
 		gg.init(g);
-		String info = game.toString();
-		MyGameGUI f = new MyGameGUI(gg);
+		return gg;
 	}
-	public  MyGameGUI(graph g){
-		this.g = g;
-		StdDraw.setXscale(35.1865,35.2135);	
-		StdDraw.setYscale(32.098,32.112);
-		double l=1;
-		while(l<15) {
-			StdDraw.setPenColor(StdDraw.GRAY);
-			StdDraw.line(l,-15,l,15);	//+y grid	
-			StdDraw.line(-l,-15,-l,15);	//-y grid
-			StdDraw.line(-15,l,15,l);  //+x grid
-			StdDraw.line(-15,-l,15,-l);	//-x grid
-			l++;
-		}
 
-		if(this.g.nodeSize() == 1) {
-			node_data n = this.g.getNode(0);
-			double x =  n.getLocation().x();
-			double y =  n.getLocation().y();
-			StdDraw.setPenColor(StdDraw.BLUE);
-			StdDraw.filledCircle(x, y, 0.4);
-			StdDraw.text(x, y+1, n.getKey()+"");
-		}
+	public void drawStartfruits(){
+		double dt = 0;
+		double dfs = 0;
+		double dfd = 0;
+		int i=0;
+		for(node_data n : this.g.getV()) {
 
-		else {
-			for (node_data n : this.g.getV()) {
+			for(edge_data e : this.g.getE(n.getKey())) {
+				double xd = this.g.getNode(e.getDest()).getLocation().x();
+				double yd = this.g.getNode(e.getDest()).getLocation().y();
+				double xs = this.g.getNode(e.getSrc()).getLocation().x();
+				double ys = this.g.getNode(e.getSrc()).getLocation().y();
 
-				double xn =  n.getLocation().x();
-				double yn =  n.getLocation().y();
-				StdDraw.setPenColor(StdDraw.BLUE);
-				StdDraw.filledCircle(xn, yn, 0.0003);
-				StdDraw.text(xn, yn+0.0005, n.getKey()+"");
-				i++;
-			}
+				for(Fruit f : fruits) {
+					double x = f.getLocation().x();
+					double y = f.getLocation().y();
 
-			for (node_data n : this.g.getV()) {
-				if(this.g.getE(n.getKey()) != null) {
-					for (edge_data e : this.g.getE(n.getKey())) {
-						StdDraw.setPenColor(StdDraw.RED);
-						StdDraw.setPenRadius(0.004);
-						double x =   this.g.getNode(e.getSrc()).getLocation().x();
-						double y =   this.g.getNode(e.getSrc()).getLocation().y();
-						double x1 =  this.g.getNode(e.getDest()).getLocation().x();
-						double y1 =  this.g.getNode(e.getDest()).getLocation().y();
-						StdDraw.line(x, y, x1, y1);
-						double midy = (y+y1)/2;
-						double midx = (x+x1)/2;
-						//						StdDraw.setPenRadius(0.0004);
-						//						StdDraw.text(midx, midy, e.getWeight()+"");	
-						//						StdDraw.setPenRadius();
-					}
-				}
-			}
+					dt = Math.sqrt(Math.pow((xd - xs), 2) + Math.pow((yd - ys), 2));
+					dfs = Math.sqrt(Math.pow((x - xs), 2) + Math.pow((y - ys), 2));
+					dfd = Math.sqrt(Math.pow((x - xd), 2) + Math.pow((y - yd), 2));
 
-			for (node_data n : this.g.getV()) {
-				if(this.g.getE(n.getKey()) != null) {
-					for (edge_data e : this.g.getE(n.getKey())) {
-						StdDraw.setPenColor(StdDraw.YELLOW);
-						double x =  this.g.getNode(e.getSrc()).getLocation().x();
-						double y =  this.g.getNode(e.getSrc()).getLocation().y();
-						double x1 =  this.g.getNode(e.getDest()).getLocation().x();
-						double y1 = this.g.getNode(e.getDest()).getLocation().y();
-
-						if(x==x1){
-							if(y1>y)
-							{StdDraw.filledCircle(x, y1-(y1-y)/9, 0.0002);}
-							else
-							{StdDraw.filledCircle(x, y1-(y1-y)/9, 0.0002);}}
-
-						if(y==y1){
-							if(x1>x)
-							{StdDraw.filledCircle(x1+(x-x1)/9, y, 0.0002);}
-							else
-							{StdDraw.filledCircle(x1+(x-x1)/9, y, 0.0002);}
+					if( dt <= (dfs + dfd + eps) && dt >= (dfs + dfd - eps)) {
+						if(e.getSrc() > e.getDest()) {
+							StdDraw.setPenColor(StdDraw.DARK_GRAY);
+							StdDraw.filledCircle(x, y, 0.00013);
+							i++;
+						}	
+						else if(e.getSrc() < e.getDest()) {	
+							StdDraw.setPenColor(StdDraw.RED);
+							StdDraw.filledCircle(x, y, 0.00013);
+							i++;
 						}
-						if(x1>x  && y1>y)
-						{StdDraw.filledCircle(x1+(x-x1)/9, y1-(y1-y)/9, 0.0002);}
-						if(x1>x  && y1<y)
-						{StdDraw.filledCircle(x1+(x-x1)/9, y1-(y1-y)/9, 0.0002);}
-						if(x1<x  && y1>y)
-						{StdDraw.filledCircle(x1+(x-x1)/9, y1-(y1-y)/9, 0.0002);}
-						if(x1<x  && y1<y)
-						{StdDraw.filledCircle(x1+(x-x1)/9, y1-(y1-y)/9, 0.0002);}
-					}
+					}		
 				}
 			}
-			i=0;
 		}
-		
-		while(StdDraw.isKeyPressed(27) != true) {
-			if(StdDraw.isMousePressed() == true) {
-				while(StdDraw.isMousePressed() == true);
-				System.out.println("bezim");
-				System.out.println(StdDraw.mouseX());
-				double xn = StdDraw.mouseX();
-				double yn = StdDraw.mouseY();
-				StdDraw.setPenColor(StdDraw.GREEN);
-				StdDraw.filledCircle(xn, yn, 0.0003);
-				
+	}
+
+	public void startclk() {
+		time.schedule(task, 1000, 1000);
+
+	}
+
+
+	public  Robot[]  getrobotsgame() {
+		JSONObject line;
+		String info = Game.toString();
+		try {
+			line = new JSONObject(info);
+			JSONObject ttt = line.getJSONObject("GameServer");
+			int rs = ttt.getInt("robots");	
+			int src_node = 0;  
+			for(int a = 0;a<rs;a++) {
+				Game.addRobot(src_node+a);
 			}
 		}
+		catch (JSONException e) {e.printStackTrace();}
+		gamerobot = new Robot[Game.getRobots().size()];
+		int i=0;
+		for(String s : Game.getRobots()) {
+			Robot r = new Robot(s);
+			this.gamerobot[i] = r;
+			i++;
+		}
+		this.run = new robotrun[gamerobot.length];
+		return gamerobot;
 	}
 }
+

@@ -8,7 +8,7 @@ import dataStructure.DGraph;
 import oop_utils.OOP_Point3D;
 import utils.Point3D;
 
-public class Fruit implements fruits{
+public class Fruit {
 	/**
 	 * 
 	 */
@@ -33,26 +33,21 @@ public class Fruit implements fruits{
 		Fruit f = new Fruit(g);
 	}
 
-	@Override
+
 	public OOP_Point3D getLocation() {
 		return this.p;
 	}
 
-	@Override
+	
 	public int getType() {
 		return this.type;
 	}
 
-	@Override
+	
 	public double getValue() {
 		return this.value;
 	}
 
-	@Override
-	public double grap(robot arg0, double arg1) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 	
 	public String toString() {
 		return this.value+"";

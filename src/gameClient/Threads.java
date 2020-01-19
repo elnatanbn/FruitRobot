@@ -2,44 +2,55 @@ package gameClient;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import Server.robot;
-import algorithms.Graph_Algo;
+import javax.swing.JOptionPane;
+import dataStructure.DGraph;
 import dataStructure.graph;
-import dataStructure.node_data;
-import utils.StdDraw;
+import oop_utils.OOP_Point3D;
 
 class robotrun extends Thread{
-
+public List<OOP_Point3D> ptokml = new ArrayList<>();
 	private Robot r;
-	private graph g;
+	private DGraph g;
 	public int id;
-	private boolean flag;
 	private List<Integer> l;
+
 	public robotrun(Robot r , graph g ) {
-		this.flag = false;
 		this.r = r;
-		this.g = g;
-		List<Integer> l = MyGameGUI.getRandomPath(this.r.getID() , this.g);
-		this.l = l;
-		System.out.println(l);
+		this.g = (DGraph) g;
+		if(r.getway() == -1) this.l  = Gameplay.getRandomPath(this.r.getSrcNode() , this.g);
+		else if (r.getway() != -1) this.l = Gameplay.getuserpath(this.r, this.g);		
 	}
 
 	@Override
 	public void interrupt() {
+		OOP_Point3D p = new OOP_Point3D((this.g.getNode(this.r.getSrcNode()).getLocation()).toString());
+		this.ptokml.add(p);
 		super.run();
-		node_data n = this.g.getNode(r.getNextNode());
+		if(Gameplay.gameset.equals("a")) {
+			if(!this.l.isEmpty()) {
+				Gameplay.game.chooseNextEdge(this.r.getID(), this.l.get(0));
+				this.r.setSrcNode(this.l.get(0));
+				this.l.remove(0);
+			}
 
-		if(this.r.getNextNode() != -1) {
-			if(r.getLocation().x() == n.getLocation().x()) this.flag = true;	
+			if(this.l.isEmpty())this.l = Gameplay.getRandomPath(this.r.getSrcNode() , this.g);
 		}
-		else if(this.r.getNextNode() == -1){this.flag = false;}
-		 if(this.flag == false && !this.l.isEmpty()) {
-			MyGameGUI.game.chooseNextEdge(this.r.getID(), (int) l.get(0));
-			this.r.setID((int) l.get(0));
-			r.setNextNode((int) l.get(0));
-			l.remove(0);
-			System.out.println(l);
-		}	
+
+		else if (Gameplay.gameset.equals("m")) {
+			if(!this.l.isEmpty()) {
+				Gameplay.game.chooseNextEdge(this.r.getID(), this.l.get(0));
+				this.l.remove(0);
+			}
+
+			if(this.l.isEmpty()) {
+				String startpath = JOptionPane.showInputDialog("quikley choose robot["+this.r.getID()+"] next location");
+				int way = Integer.parseInt(startpath);
+				this.r.setway(way);
+				this.l = Gameplay.getuserpath(this.r, Gameplay.mygraph);	
+			}
+		}
 	}
+
+
+
 }

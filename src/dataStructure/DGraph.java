@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 import Server.Game_Server;
 import Server.game_service;
-import gui.Graph_GUI;
+import gui.MyGame_GUI;
 import utils.Point3D;
 
 public class DGraph   implements graph,Serializable {
@@ -227,14 +227,27 @@ public class DGraph   implements graph,Serializable {
 			Node n = new Node(k,0,p);
 			this.addNode(n);
 		} while(s.length()>3);
-		this.edge = edge;
-		this.vertex = vertex;
+		
 		cnt = 0;
+		for (int i = 0; i < edge.length; i++) {
+			if(edge[i] != null) {
+				cnt++;
+			}
+		}
+		Edge[] edgefinal = new Edge[cnt-1];
+		
+		cnt=0;
 		for (int i = 1; i < edge.length; i++) {
 			if(edge[i] != null) {
 				Edge e3 = edge[i];
-				this.connect(e3.getSrc(), e3.getDest(), e3.getWeight());}
-			else {cnt++;}
-		}		
+				edgefinal[cnt] = e3;
+				cnt++;
+				this.connect(e3.getSrc(), e3.getDest(), e3.getWeight());
+				}
+			
+		}	
+		
+		this.edge = edgefinal;
+		this.vertex = vertex;
 	}
 }

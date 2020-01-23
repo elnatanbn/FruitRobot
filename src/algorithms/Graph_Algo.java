@@ -8,16 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Stack;
-import dataStructure.DGraph;
-import dataStructure.Edge;
 import dataStructure.Node;
 import dataStructure.edge_data;
 import dataStructure.graph;
 import dataStructure.node_data;
-import utils.Point3D;
 /**
  * This  class represents the set of graph-theory algorithms 
- * @author 
+ * @author OfirBador & ElnatanBerenson
  *
  */
 public class Graph_Algo implements graph_algorithms{
@@ -28,46 +25,10 @@ public class Graph_Algo implements graph_algorithms{
 	double inf = Double.POSITIVE_INFINITY;
 
 	private List<node_data> path = new ArrayList<node_data>();
-	public static void main(String[] argas) {
-		Point3D p1 = new Point3D(0,1,0);
-		Point3D p2 = new Point3D(1,1,0);
-		Point3D p3 = new Point3D(1,0,0);
-		Point3D p4 = new Point3D(0,0,0);
-		Point3D p5 = new Point3D(0,2,0);
-
-		Node n0 = new Node(0,0,p1);
-		Node n1 = new Node(1,0,p2);
-		Node n2 = new Node(2,0,p3);
-		Node n3 = new Node(3,0,p4);
-		Node n4 = new Node(4,0,p5);
-
-		Edge e1 = new Edge(n0, n1, 1);
-		Edge e2 = new Edge(n1, n2, 2);
-		Edge e3 = new Edge(n2, n3, 5);
-		Edge e4 = new Edge(n3, n4, 3);
-		Edge e5 = new Edge(n4, n0, 4);
-		Edge e6 = new Edge(n0, n4, 10);
-
-		Edge edge[]= {e1,e2,e3,e4,e5,e6};
-		Node node[] = {n0,n1,n2,n3,n4};
-		Edge edge1[]= {e1,e2,e3};
-		Node node1[] = {n0,n1,n2};
-		graph g = new DGraph(node , edge);
-		graph g1 = new DGraph(node1 , edge1);
-		Graph_Algo G = new Graph_Algo(g);
-
-		System.out.println(G.tostring());
-		System.out.println(G.isConnected());
-		System.out.println(G.shortestPathDist(0, 2));
-		System.out.println(G.shortestPath(0, 2));
-		G.save("ofir");
-		Graph_Algo G1 = new Graph_Algo(g1);
-		G1.init("ofir");
-		System.out.println(G1.tostring());
-	}
-
-
-
+	/**
+	 * This method represents constructor sets initial conditions for 
+	 * The graph chosen
+	 */
 	public Graph_Algo(graph g){
 		this.g = g;
 		this.k = new  int[g.nodeSize()];
@@ -75,7 +36,11 @@ public class Graph_Algo implements graph_algorithms{
 			this.k[i] = i;
 		}	
 	}
-
+	/**
+	 * This method sets graphs initial conditions
+	 *  such as key, parent vertex 
+	 *  used for algorithms
+	 */
 	@Override
 	public void init(graph g) {
 		for(node_data n : this.g.getV()) {
@@ -86,7 +51,9 @@ public class Graph_Algo implements graph_algorithms{
 			this.p[i]=this.g.getNode(i);
 		}
 	}
-
+	/**
+	 * This method set initial conditions from saved file 
+	 */
 	@Override
 	public void init(String file_name) {
 		try {
@@ -100,7 +67,10 @@ public class Graph_Algo implements graph_algorithms{
 			System.out.println("problem with file init");
 		}	
 	}
-
+	/**
+	 * This method saved graph to file to specific location
+	 * choose your file name
+	 */
 	@Override
 	public void save(String file_name) {
 
@@ -115,8 +85,10 @@ public class Graph_Algo implements graph_algorithms{
 			System.out.println("problem with file save");
 		}
 	}
-
-
+	/**
+	 * This method run on any graph and returns true if all graph is connected 
+	 * Based on BFS algorithm (elaboration on the detail in BFS method)
+	 */
 	@Override
 	public boolean isConnected() {	
 		if(this.g.getV().size() == 0 ) return false;
@@ -129,7 +101,10 @@ public class Graph_Algo implements graph_algorithms{
 		}
 		return true;
 	}
-
+	/**
+	 * This method based on Dijkstra algorithm and checked the shortest path from 
+	 * Two selected vertex
+	 */
 	@Override
 	public double shortestPathDist(int src, int dest) {
 		if(!this.g.getV().contains(g.getNode(src)) || !this.g.getV().contains(g.getNode(dest)))throw new RuntimeException( "no vertex to path");
@@ -179,7 +154,10 @@ public class Graph_Algo implements graph_algorithms{
 			return  dis[dest];
 		}
 	}
-
+	/**
+	 * This method returns (if available) the list of vertex in the path  
+	 * between Two selected vertex
+	 */
 	@Override
 	public List<node_data> shortestPath(int src, int dest) {
 		if(!this.g.getV().contains(g.getNode(src)) || !this.g.getV().contains(g.getNode(dest)))throw new RuntimeException( "no vertex to path");
@@ -194,7 +172,10 @@ public class Graph_Algo implements graph_algorithms{
 		}
 		return path;
 	}
-
+	/**
+	 * This method returns (if available) a list contains   
+	 * all vertex in targets 
+	 */
 	@Override
 	public List<node_data> TSP(List<Integer> targets) {
 		List<node_data> l = new ArrayList<>();
@@ -216,13 +197,17 @@ public class Graph_Algo implements graph_algorithms{
 		L.add(this.g.getNode(targets.get(targets.size()-1)));
 		return L;
 	}
-
+	/**
+	 * This method copy graph 
+	 */
 	@Override
 	public graph copy() {
 		graph l = this.g;
 		return l;
 	}
-
+	/**
+	 * This method prints a selected graph
+	 */
 	public String tostring() {
 		String vertex = "";
 		String edge = "";
@@ -242,7 +227,7 @@ public class Graph_Algo implements graph_algorithms{
 	 * 1 - connected to another vertex but not fully checked
 	 * 2 - checked all vertex connected with n
 	 */
-	private int BFS( node_data n) {
+	public int BFS( node_data n) {
 		Stack<node_data> q = new Stack<node_data>();
 		q.empty();
 		q.push(n);	

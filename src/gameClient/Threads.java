@@ -1,28 +1,38 @@
+
 package gameClient;
 
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
+
+import Server.game_service;
 import dataStructure.DGraph;
 import dataStructure.graph;
 import oop_utils.OOP_Point3D;
-
+/**
+ * This class represents the way of the robot in game play
+ * @author OfirBador & ElnatanBerenson
+ */
 class robotrun extends Thread{
-public List<OOP_Point3D> ptokml = new ArrayList<>();
+	public List<OOP_Point3D> ptokml = new ArrayList<>();
 	private Robot r;
 	private DGraph g;
 	public int id;
 	private List<Integer> l;
-
-	public robotrun(Robot r , graph g ) {
+	/**
+	 * Constructor for game robot 
+	 * place the robot, graph and game play 
+	 * and automatic path for the robot
+	 */
+	public robotrun(Robot r , graph g ,game_service game) {
 		this.r = r;
 		this.g = (DGraph) g;
-		if(r.getway() == -1) this.l  = Gameplay.getRandomPath(this.r.getSrcNode() , this.g);
+		if(r.getway() == -1) this.l  = Gameplay.getPathtofruit(this.r.getSrcNode() , this.g , this.r);
 		else if (r.getway() != -1) this.l = Gameplay.getuserpath(this.r, this.g);		
 	}
-
 	@Override
-	public void interrupt() {
+	public void run() {
+		super.run();
 		OOP_Point3D p = new OOP_Point3D((this.g.getNode(this.r.getSrcNode()).getLocation()).toString());
 		this.ptokml.add(p);
 		super.run();
@@ -33,7 +43,10 @@ public List<OOP_Point3D> ptokml = new ArrayList<>();
 				this.l.remove(0);
 			}
 
-			if(this.l.isEmpty())this.l = Gameplay.getRandomPath(this.r.getSrcNode() , this.g);
+			else if(this.l.isEmpty()) {
+				this.l.clear();
+				this.l = Gameplay.getPathtofruit(this.r.getSrcNode() , this.g , this.r);
+			}
 		}
 
 		else if (Gameplay.gameset.equals("m")) {
@@ -50,7 +63,4 @@ public List<OOP_Point3D> ptokml = new ArrayList<>();
 			}
 		}
 	}
-
-
-
 }

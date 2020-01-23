@@ -10,19 +10,18 @@ import dataStructure.node_data;
 import gameClient.Fruit;
 import gameClient.Gameplay;
 import gameClient.Robot;;
-
+/**
+ * This class represents the print of the game 
+ * @author OfirBador & ElnatanBerenson
+ */
 public class MyGame_GUI {
 	public graph g;
 	public static final double eps = 0.00000001;
-
-	//	
-	//		public static void main(String[] args) {
-	//			Graph_GUI G = new Graph_GUI(MyGameGUI.mygraph);
-	//			
-	//
-	//		}
-
-	public void drawGraph() {
+	/**
+	 * This method prints the graph of the game (can print any DGraph or graph) 
+	 * @return true if draw success
+	 */
+	public  boolean  drawGraph() {
 		StdDraw.enableDoubleBuffering();		
 		for (node_data n : this.g.getV()) {
 			double xn =  n.getLocation().x();
@@ -53,15 +52,23 @@ public class MyGame_GUI {
 				}
 			}
 		}
+	return true;
 	}
-
-	public void drawRobots(Robot[] robots) { 
+	/**
+	 * This method prints the game robots of the graph
+	 * @return true if draw success
+	 */
+	public boolean drawRobots(Robot[] robots) { 
 		StdDraw.enableDoubleBuffering();
 		for(Robot r : robots) {	
 			StdDraw.picture(r.getLocation().x(), r.getLocation().y(), "monkey.png");
 		}
+		return true;
 	}
-
+	/**
+	 * This method prints the game robots info
+	 * id number , value , starting place , location to move
+	 */
 	public void drawRobotsinfo(List<String> list) { 
 		StdDraw.enableDoubleBuffering();
 		StdDraw.setPenColor(StdDraw.BLACK);
@@ -76,29 +83,43 @@ public class MyGame_GUI {
 		i=0;
 
 	}
-
-	public void drawfruits(Fruit[] fruits) {
+	/**
+	 * This method prints the game fruits on the graph
+	 * @return true if draw success
+	 */
+	public  boolean drawfruits(Fruit[] fruits) {
 		StdDraw.enableDoubleBuffering();
 		for(Fruit f : fruits) {
 			if(f.getType() == -1)StdDraw.picture(f.getLocation().x(), f.getLocation().y(), "banana.png");
 			else StdDraw.picture(f.getLocation().x(), f.getLocation().y(), "strawberry.png");
 		}
+		return true;
 	}
-
-	public void printclk() {
+	/**
+	 * This method prints the game time passed
+	 * @return true if draw success
+	 */
+	public boolean printclk() {
 		StdDraw.enableDoubleBuffering();
 		StdDraw.setPenColor(StdDraw.BLACK);
 		StdDraw.text(35.19, 32.1, "time passed: " + Gameplay.currentTime);
+		return true;
 	}
-
+	/**
+	 * This method sets an default canvas for the game
+	 */
 	public  MyGame_GUI(graph g){
 		this.g = g;
 		StdDraw.setCanvasSize(1350,680);
 		StdDraw.setXscale(35.1865,35.2135);	
 		StdDraw.setYscale(32.098,32.112);
 	}
-
-	public void Gameover(Robot[] rob) {
+	/**
+	 * This method print score value of the game 
+	 * when game time is over
+	 * @return true if draw success
+	 */
+	public boolean Gameover(Robot[] rob) {
 		double totval = 0 ;
 		int i = 0;
 		for(Robot r : rob) {
@@ -116,7 +137,6 @@ public class MyGame_GUI {
 		StdDraw.text(35.2, 32.1085, "Number of robot : " + i );
 		StdDraw.text(35.2, 32.1075, "Game number : " + Gameplay.gamenum );
 		StdDraw.text(35.2, 32.1065, "Hope you enjoy playing!" );
-
+		return true;
 	}
-
 }

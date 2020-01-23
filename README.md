@@ -9,3 +9,4 @@ each robot has a score of himself.
 the total game score is the sum up of all robots score.
 
 good luck & enjoy playing.
+![](image/game.png)
